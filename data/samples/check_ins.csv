@@ -1,0 +1,2 @@
+id,member_id,class_session_id,checked_in_at,is_guest,guest_first_name
+REPLACE_CHECKIN_ID,REPLACE_MT_USER_ID,REPLACE_SESSION_ID,2026-05-24T17:52:00-04:00,false,

@@ -1,0 +1,2 @@
+id,class_type,instructor_name,classroom_name,start_time,end_time,capacity,available_spots,waitlist_count
+REPLACE_SESSION_ID,26 & 2 Hot Yoga,Pooja Kothari,Main Studio,2026-05-24T18:00:00-04:00,2026-05-24T19:30:00-04:00,40,3,0

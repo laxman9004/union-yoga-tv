@@ -1,0 +1,104 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model StudioConfig {
+  id                    Int       @id @default(1)
+  studioAnniversaryDate DateTime  @default("2025-01-03T00:00:00.000Z")
+  lastImportAt          DateTime?
+  dataThroughDate       DateTime?
+  updatedAt             DateTime  @updatedAt
+}
+
+model Member {
+  id                 String    @id
+  firstName          String
+  lastInitial        String?
+  email              String?
+  memberSinceDate    DateTime?
+  birthday           DateTime?
+  optOutFlag         Boolean   @default(false)
+  lifetimeClassCount Int       @default(0)
+  checkInsPeriod     Int?
+  checkIns1Week      Int?
+  checkIns1Month     Int?
+  lastCheckInAt      DateTime?
+  referralCount      Int       @default(0)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  checkIns           CheckIn[]
+}
+
+model ClassSession {
+  id              String    @id
+  classType       String
+  instructorName  String?
+  classroomName   String?
+  startTime       DateTime
+  endTime         DateTime?
+  capacity        Int?
+  availableSpots  Int?
+  waitlistCount        Int       @default(0)
+  checkedInCount       Int?
+  utilizationPercent Float?
+  createdAt            DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  checkIns        CheckIn[]
+}
+
+model CheckIn {
+  id             String       @id
+  memberId       String
+  classSessionId String
+  checkedInAt    DateTime
+  isGuest        Boolean      @default(false)
+  guestFirstName String?
+  member         Member       @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  classSession   ClassSession @relation(fields: [classSessionId], references: [id], onDelete: Cascade)
+
+  @@index([memberId])
+  @@index([classSessionId])
+  @@index([checkedInAt])
+}
+
+model NameBlocklist {
+  id        String   @id @default(cuid())
+  memberId  String   @unique
+  reason    String?
+  createdAt DateTime @default(now())
+}
+
+model GeneratedCopy {
+  id         String   @id @default(cuid())
+  templateId String
+  content    String
+  status     String   @default("draft")
+  inputsJson String?
+  validFor   DateTime?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([templateId, status])
+  @@index([validFor])
+}
+
+model ImportRun {
+  id         String   @id @default(cuid())
+  filename   String
+  fileType   String
+  rowCount   Int      @default(0)
+  status     String
+  errorsJson String?
+  createdAt  DateTime @default(now())
+}
+
+model SceneToggle {
+  sceneId   String  @id
+  enabled   Boolean @default(true)
+  updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Union Yoga · The Frame</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #1F2A22;
+    }
+  </style>
+  <!-- Optional: copy config.example.js → config.js and set IMAGE_URL -->
+  <script src="config.js" onerror=""></script>
+</head>
+<body>
+  <img
+    id="frame"
+    alt="Union Yoga lobby display"
+    style="width:100vw;height:100vh;object-fit:contain;background:#F4EFE6;display:block;"
+  />
+  <script>
+    (function () {
+      var params = new URLSearchParams(location.search);
+      var base =
+        (typeof window.FRAME_IMAGE_URL !== "undefined" && window.FRAME_IMAGE_URL) ||
+        params.get("src") ||
+        "today.png";
+
+      var img = document.getElementById("frame");
+      var REFRESH_MS = 60 * 1000;
+
+      function refresh() {
+        var sep = base.indexOf("?") >= 0 ? "&" : "?";
+        img.src = base + sep + "t=" + Date.now();
+      }
+
+      refresh();
+      setInterval(refresh, REFRESH_MS);
+
+      img.onerror = function () {
+        img.style.background = "#F4EFE6";
+        img.alt = "Waiting for today.png — upload to your cloud folder.";
+      };
+    })();
+  </script>
+</body>
+</html>
