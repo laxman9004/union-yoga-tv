@@ -1,4 +1,5 @@
-import { loadIncomingFiles } from "./load-incoming";
+import { loadIncomingFiles, getIncomingDir } from "./load-incoming";
+import type { IncomingFile } from "./load-incoming";
 import { parseMtDate, isOnOrBeforeToday, combineClassDateTime } from "./dates";
 import { MT } from "./mariana/fields";
 import type { MarianaFileKind } from "./mariana/types";
@@ -95,8 +96,11 @@ function analyzeMarianaFile(
   };
 }
 
-export async function verifyIncomingFiles(): Promise<DataVerificationReport> {
-  const parsed = await loadIncomingFiles();
+export function verifyFileSet(
+  parsed: IncomingFile[],
+  opts?: { sourceLabel?: string }
+): DataVerificationReport {
+
   const files = parsed.map((p) => analyzeMarianaFile(p.filename, p.kind, p.rows));
 
   const details = parsed.filter((p) => p.kind === "customers_details");
@@ -203,7 +207,8 @@ export async function verifyIncomingFiles(): Promise<DataVerificationReport> {
 
   let summary: string;
   if (parsed.length === 0) {
-    summary = "No CSV files in data/incoming/.";
+    summary =
+      "No CSV files yet. Upload Mariana exports below, or drop them in data/incoming/ on your Mac and run npm run sync.";
   } else if (!hasDetails) {
     summary = "Missing Customers – Details export.";
   } else if (!sufficientForMvp) {
@@ -214,7 +219,7 @@ export async function verifyIncomingFiles(): Promise<DataVerificationReport> {
 
   return {
     scannedAt: new Date().toISOString(),
-    incomingDir: process.cwd() + "/data/incoming",
+    incomingDir: opts?.sourceLabel ?? getIncomingDir(),
     files,
     crossFile: {
       memberCount,
@@ -233,4 +238,9 @@ export async function verifyIncomingFiles(): Promise<DataVerificationReport> {
     sufficientForMvp,
     sufficientForImport,
   };
+}
+
+export async function verifyIncomingFiles(): Promise<DataVerificationReport> {
+  const parsed = await loadIncomingFiles();
+  return verifyFileSet(parsed);
 }
