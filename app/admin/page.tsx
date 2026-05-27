@@ -104,6 +104,16 @@ export default function AdminPage() {
           <Link href="/display" className="underline">
             Open display →
           </Link>
+          <button
+            type="button"
+            onClick={async () => {
+              await fetch("/api/admin/logout", { method: "POST" });
+              window.location.href = "/admin/login";
+            }}
+            className="text-moss underline"
+          >
+            Sign out
+          </button>
         </nav>
         {dbStatus?.lastImportAt && (
           <p className="mt-3 text-moss text-sm">
