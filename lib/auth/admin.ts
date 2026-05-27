@@ -1,43 +1,56 @@
-import { createHmac, timingSafeEqual } from "crypto";
-
 const SESSION_PAYLOAD = "union-frame-admin-v1";
 export const ADMIN_COOKIE = "frame_admin";
 
-function sessionToken(password: string): string {
-  return createHmac("sha256", password).update(SESSION_PAYLOAD).digest("hex");
+function bytesToHex(bytes: ArrayBuffer): string {
+  return [...new Uint8Array(bytes)]
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+}
+
+async function sessionToken(password: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(password),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  const sig = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    new TextEncoder().encode(SESSION_PAYLOAD)
+  );
+  return bytesToHex(sig);
+}
+
+function timingSafeEqualText(a: string, b: string): boolean {
+  const ea = new TextEncoder().encode(a);
+  const eb = new TextEncoder().encode(b);
+  if (ea.length !== eb.length) return false;
+  let diff = 0;
+  for (let i = 0; i < ea.length; i++) diff |= ea[i]! ^ eb[i]!;
+  return diff === 0;
 }
 
 export function verifyAdminPassword(attempt: string): boolean {
   const expected = process.env.ADMIN_PASSWORD;
   if (!expected) return false;
-  try {
-    const a = Buffer.from(attempt, "utf8");
-    const b = Buffer.from(expected, "utf8");
-    if (a.length !== b.length) return false;
-    return timingSafeEqual(a, b);
-  } catch {
-    return false;
-  }
+  return timingSafeEqualText(attempt, expected);
 }
 
-export function createAdminSessionValue(): string | null {
+export async function createAdminSessionValue(): Promise<string | null> {
   const password = process.env.ADMIN_PASSWORD;
   if (!password) return null;
   return sessionToken(password);
 }
 
-export function isValidAdminSession(cookieValue: string | undefined): boolean {
+export async function isValidAdminSession(
+  cookieValue: string | undefined
+): Promise<boolean> {
   const password = process.env.ADMIN_PASSWORD;
   if (!password || !cookieValue) return false;
-  const expected = sessionToken(password);
-  try {
-    const a = Buffer.from(cookieValue, "utf8");
-    const b = Buffer.from(expected, "utf8");
-    if (a.length !== b.length) return false;
-    return timingSafeEqual(a, b);
-  } catch {
-    return false;
-  }
+  const expected = await sessionToken(password);
+  return timingSafeEqualText(cookieValue, expected);
 }
 
 export function adminAuthRequired(): boolean {

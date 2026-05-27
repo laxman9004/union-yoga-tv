@@ -8,7 +8,7 @@ import {
 
 const PROTECTED = ["/admin", "/api/data", "/api/copy"];
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   if (
@@ -38,7 +38,7 @@ export function middleware(request: NextRequest) {
   }
 
   const session = request.cookies.get(ADMIN_COOKIE)?.value;
-  if (isValidAdminSession(session)) {
+  if (await isValidAdminSession(session)) {
     return NextResponse.next();
   }
 
