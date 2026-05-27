@@ -7,8 +7,8 @@ const globalForPrisma = globalThis as unknown as {
 function createTursoClient(): PrismaClient {
   // Web adapter — works on Netlify serverless (no native binaries).
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { PrismaLibSQL } = require("@prisma/adapter-libsql/web");
-  const adapter = new PrismaLibSQL({
+  const { PrismaLibSql } = require("@prisma/adapter-libsql/web");
+  const adapter = new PrismaLibSql({
     url: process.env.TURSO_DATABASE_URL!,
     authToken: process.env.TURSO_AUTH_TOKEN!,
   });
