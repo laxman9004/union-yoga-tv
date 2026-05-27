@@ -93,7 +93,11 @@ export async function importFileSet(
       });
     }
 
-    await refreshTodayLineupDrafts();
+    try {
+      await refreshTodayLineupDrafts();
+    } catch {
+      /* lineup tables optional until migration applied */
+    }
   } catch (e) {
     return {
       verification,
