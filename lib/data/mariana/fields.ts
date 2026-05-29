@@ -101,7 +101,3 @@ export function parsePersonName(full: string): {
 export function isCheckedInStatus(status: string): boolean {
   return status.trim().toLowerCase() === "check in";
 }
-
-export function marianaClassSessionId(classId: string): string {
-  return `mt-class-${classId}`;
-}

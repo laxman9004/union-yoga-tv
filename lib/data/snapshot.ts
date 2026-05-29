@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/db/client";
 import { brand, milestones } from "@/lib/brand/tokens";
 import { getPublishedCopyForDisplay } from "./published-copy";
+import { isSameMonthDayLocal, studioDayStart } from "./dates";
+import { resolveDisplayLineup } from "./lineup/schedule";
 import type {
   FrameSnapshot,
   LeaderboardEntry,
@@ -20,6 +22,13 @@ export { formatAsOfLine } from "./snapshot-types";
 
 const STREAK_WEEKS = [4, 8, 12, 26, 52];
 
+/**
+ * How recently a member must have visited to be eligible for a celebratory
+ * lobby scene (birthday, near-milestone). Keeps long-lapsed members who happen
+ * to match today's date off the TV.
+ */
+const ACTIVE_RECENCY_DAYS = 30;
+
 function displayName(
   firstName: string,
   lastInitial: string | null,
@@ -27,14 +36,6 @@ function displayName(
 ): { firstName: string; lastInitial: string | null } {
   if (optOut) return { firstName: "A member", lastInitial: null };
   return { firstName, lastInitial };
-}
-
-function isBirthdayToday(birthday: Date | null, now: Date): boolean {
-  if (!birthday) return false;
-  return (
-    birthday.getUTCMonth() === now.getUTCMonth() &&
-    birthday.getUTCDate() === now.getUTCDate()
-  );
 }
 
 function buildStudioAnniversary(now: Date): StudioAnniversary | null {
@@ -69,8 +70,10 @@ export async function buildFrameSnapshot(): Promise<FrameSnapshot> {
   const now = new Date();
   const weekAgo = new Date(now);
   weekAgo.setDate(weekAgo.getDate() - 7);
-  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayStart = studioDayStart(now);
   const inFourHours = new Date(now.getTime() + 4 * 60 * 60 * 1000);
+  const activeSince = new Date(now);
+  activeSince.setDate(activeSince.getDate() - ACTIVE_RECENCY_DAYS);
 
   const [
     memberCount,
@@ -104,6 +107,7 @@ export async function buildFrameSnapshot(): Promise<FrameSnapshot> {
         optOutFlag: true,
         birthday: true,
         checkIns1Week: true,
+        lastCheckInAt: true,
       },
     }),
     prisma.classSession.findMany({
@@ -123,7 +127,13 @@ export async function buildFrameSnapshot(): Promise<FrameSnapshot> {
     }),
     prisma.member.findMany({
       where: { optOutFlag: false, birthday: { not: null } },
-      select: { firstName: true, lastInitial: true, birthday: true, optOutFlag: true },
+      select: {
+        id: true,
+        firstName: true,
+        lastInitial: true,
+        birthday: true,
+        optOutFlag: true,
+      },
     }),
     prisma.classSession.findMany({
       where: {
@@ -155,8 +165,20 @@ export async function buildFrameSnapshot(): Promise<FrameSnapshot> {
     });
   }
 
+  const todayMemberIds = new Set(
+    todayCheckIns.filter((c) => !c.isGuest).map((c) => c.memberId)
+  );
+
+  const isActive = (
+    memberId: string,
+    lastCheckInAt: Date | null
+  ): boolean =>
+    todayMemberIds.has(memberId) ||
+    (lastCheckInAt != null && lastCheckInAt >= activeSince);
+
   const nearMilestones: MilestoneEntry[] = [];
   for (const m of members) {
+    if (!isActive(m.id, m.lastCheckInAt)) continue;
     for (const target of milestones) {
       const until = target - m.lifetimeClassCount;
       if (until >= 0 && until <= 2) {
@@ -176,7 +198,10 @@ export async function buildFrameSnapshot(): Promise<FrameSnapshot> {
   nearMilestones.sort((a, b) => a.classesUntil - b.classesUntil);
   nearMilestones.splice(8);
 
-  const milestonesHitToday = nearMilestones.filter((m) => m.classesUntil === 0);
+  // "Hit today" is a strong claim — only true for members actually in the room.
+  const milestonesHitToday = nearMilestones.filter(
+    (m) => m.classesUntil === 0 && todayMemberIds.has(m.memberId)
+  );
 
   const classCounts = new Map<string, number>();
   for (const s of sessionsWeek) {
@@ -202,10 +227,6 @@ export async function buildFrameSnapshot(): Promise<FrameSnapshot> {
       };
     });
 
-  const todayMemberIds = new Set(
-    todayCheckIns.filter((c) => !c.isGuest).map((c) => c.memberId)
-  );
-
   const weekStreakHonorees: StreakHonoree[] = [];
   for (const m of members) {
     if (!m.checkIns1Week || !STREAK_WEEKS.includes(m.checkIns1Week)) continue;
@@ -218,8 +239,14 @@ export async function buildFrameSnapshot(): Promise<FrameSnapshot> {
     });
   }
 
+  // A birthday is only celebrated for someone actually in the room today — the
+  // copy ("say hi at the desk") implies presence. Recent activity is NOT enough:
+  // a member whose birthday is today but who isn't checked in today must not
+  // appear. Requires same-day check-in data to be imported.
   const birthdaysToday = birthdayMembers
-    .filter((m) => isBirthdayToday(m.birthday, now))
+    .filter(
+      (m) => isSameMonthDayLocal(m.birthday, now) && todayMemberIds.has(m.id)
+    )
     .map((m) => {
       const d = displayName(m.firstName, m.lastInitial, m.optOutFlag);
       return { firstName: d.firstName, lastInitial: d.lastInitial };
@@ -287,6 +314,8 @@ export async function buildFrameSnapshot(): Promise<FrameSnapshot> {
     }
   }
 
+  const displayLineup = await resolveDisplayLineup(now);
+
   return {
     asOf: now.toISOString(),
     dataThrough: config?.dataThroughDate?.toISOString().slice(0, 10) ?? null,
@@ -305,5 +334,6 @@ export async function buildFrameSnapshot(): Promise<FrameSnapshot> {
     instructorOfWeek,
     studioAnniversary: buildStudioAnniversary(now),
     milestonesHitToday,
+    displayLineup,
   };
 }

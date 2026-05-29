@@ -1,15 +1,13 @@
 import { prisma } from "@/lib/db/client";
+import { studioDayEnd, studioDayStart } from "./dates";
 import type { PublishedCopy } from "./snapshot-types";
 
 function startOfToday(): Date {
-  const n = new Date();
-  return new Date(n.getFullYear(), n.getMonth(), n.getDate());
+  return studioDayStart();
 }
 
 function endOfToday(): Date {
-  const s = startOfToday();
-  s.setHours(23, 59, 59, 999);
-  return s;
+  return studioDayEnd();
 }
 
 export async function getPublishedCopyForDisplay(): Promise<PublishedCopy> {

@@ -49,6 +49,7 @@ model ClassSession {
   createdAt            DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   checkIns        CheckIn[]
+  lineups         ClassLineup[]
 }
 
 model CheckIn {
@@ -101,4 +102,34 @@ model SceneToggle {
   sceneId   String  @id
   enabled   Boolean @default(true)
   updatedAt DateTime @updatedAt
+}
+
+model ClassLineup {
+  id             String            @id @default(cuid())
+  classSessionId String
+  validFor       DateTime
+  status         String            @default("draft")
+  publishedAt    DateTime?
+  updatedAt      DateTime          @updatedAt
+  classSession   ClassSession      @relation(fields: [classSessionId], references: [id], onDelete: Cascade)
+  items          ClassLineupItem[]
+
+  @@unique([classSessionId, validFor])
+  @@index([validFor, status])
+}
+
+model ClassLineupItem {
+  id          String      @id @default(cuid())
+  lineupId    String
+  itemKey     String
+  sceneKey    String
+  headline    String
+  subline     String
+  category    String
+  enabled     Boolean     @default(true)
+  sortOrder   Int         @default(0)
+  payloadJson String
+  lineup      ClassLineup @relation(fields: [lineupId], references: [id], onDelete: Cascade)
+
+  @@unique([lineupId, itemKey])
 }

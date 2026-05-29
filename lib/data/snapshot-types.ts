@@ -64,6 +64,10 @@ export type StudioAnniversary = {
   detail: string;
 };
 
+import type { DisplayLineupState } from "@/lib/data/lineup/types";
+
+export type { DisplayLineupState };
+
 export type FrameSnapshot = {
   asOf: string;
   dataThrough: string | null;
@@ -88,6 +92,7 @@ export type FrameSnapshot = {
   instructorOfWeek: InstructorOfWeek | null;
   studioAnniversary: StudioAnniversary | null;
   milestonesHitToday: MilestoneEntry[];
+  displayLineup: DisplayLineupState;
 };
 
 export function formatAsOfLine(snapshot: FrameSnapshot): string {

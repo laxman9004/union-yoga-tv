@@ -11,7 +11,11 @@
     "db:migrate": "prisma migrate dev",
     "db:generate": "prisma generate",
     "brand:assets": "bash scripts/download-brand-assets.sh",
-    "frame:export": "bash scripts/export-frame.sh"
+    "frame:export": "bash scripts/export-frame.sh",
+    "sync": "tsx scripts/sync-local.ts",
+    "diagnose:turso": "tsx scripts/diagnose-turso.ts",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.98.0",
@@ -28,6 +32,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@netlify/plugin-nextjs": "^5.15.3",
     "@tailwindcss/postcss": "^4",
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^20",
@@ -35,9 +40,10 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
-    "@netlify/plugin-nextjs": "^5.15.3",
     "prisma": "^7.8.0",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "tsx": "^4.22.3",
+    "typescript": "^5",
+    "vitest": "^4.1.7"
   }
 }

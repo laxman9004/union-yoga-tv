@@ -28,6 +28,7 @@ function emptySnapshot(): FrameSnapshot {
     instructorOfWeek: null,
     studioAnniversary: null,
     milestonesHitToday: [],
+    displayLineup: { mode: "ambient", activeClass: null, items: [] },
   };
 }
 

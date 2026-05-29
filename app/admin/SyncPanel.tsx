@@ -66,7 +66,7 @@ export function SyncPanel() {
       }
       setImportResult(data);
       setReport(data.verification);
-      setMessage("Imported. Open Lineup → Refresh → Publish to TV.");
+      setMessage("Imported. Open Copy → Refresh → Publish to TV.");
     } catch {
       setMessage("Import failed — if Reservations is huge, use npm run sync on your Mac.");
     } finally {
@@ -82,7 +82,7 @@ export function SyncPanel() {
         <h2 className="font-serif text-2xl text-forest-deep">Upload Mariana exports</h2>
         <p className="mt-2 text-moss text-sm leading-relaxed">
           Netlify has no folder on disk — pick CSVs here. After import, go to{" "}
-          <strong>Lineup</strong> → Refresh → Publish.
+          <strong>Copy</strong> → Refresh → Publish.
         </p>
         <p className="mt-2 text-moss text-xs">
           Files over 5MB (often Reservations) must use Mac sync below instead.

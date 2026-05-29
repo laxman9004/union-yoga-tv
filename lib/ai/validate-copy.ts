@@ -1,17 +1,4 @@
-const BANNED = [
-  "namaste",
-  "journey",
-  "crush it",
-  "crush",
-  "wellness warrior",
-  "manifest",
-  "vibes only",
-  "bliss",
-  "flow state",
-  "let go",
-  "🙏",
-  "tribe",
-];
+import { findSlopViolations } from "./slop-filter";
 
 export type CopyValidation = {
   ok: boolean;
@@ -22,20 +9,7 @@ export function validateCopy(
   content: string,
   opts?: { maxWords?: number; maxChars?: number }
 ): CopyValidation {
-  const errors: string[] = [];
-  const lower = content.toLowerCase();
-
-  for (const word of BANNED) {
-    if (word === "crush" && /\bcrush it\b/i.test(content)) {
-      errors.push('Banned phrase: "crush it"');
-    } else if (word === "crush" && /\bcrush\b/i.test(content) && !/\bcrush it\b/i.test(content)) {
-      continue;
-    } else if (word === "tribe" && /\btribe\b/i.test(lower)) {
-      errors.push('Banned word: "tribe" (corporate sense)');
-    } else if (lower.includes(word)) {
-      errors.push(`Banned: "${word}"`);
-    }
-  }
+  const errors: string[] = [...findSlopViolations(content)];
 
   if (opts?.maxWords) {
     const words = content.trim().split(/\s+/).length;
