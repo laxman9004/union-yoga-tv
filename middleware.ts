@@ -6,7 +6,14 @@ import {
   isValidAdminSession,
 } from "@/lib/auth/admin";
 
-const PROTECTED = ["/admin", "/api/data", "/api/copy", "/api/lineup", "/api/calendar"];
+const PROTECTED = [
+  "/admin",
+  "/api/data",
+  "/api/copy",
+  "/api/lineup",
+  "/api/calendar",
+  "/api/admin",
+];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
@@ -62,5 +69,6 @@ export const config = {
     "/api/copy/:path*",
     "/api/lineup",
     "/api/lineup/:path*",
+    "/api/admin/:path*",
   ],
 };

@@ -4,12 +4,25 @@ import { useCallback, useState } from "react";
 import type { DataVerificationReport } from "@/lib/data/verify";
 import type { ImportResult } from "@/lib/data/import";
 
+type ScheduleSyncResult = {
+  fetched: number;
+  upserted: number;
+  cancelledSkipped: number;
+  errors: string[];
+  windowStart: string;
+  windowEnd: string;
+  durationMs: number;
+};
+
 export function SyncPanel() {
   const [files, setFiles] = useState<FileList | null>(null);
   const [report, setReport] = useState<DataVerificationReport | null>(null);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [scheduleBusy, setScheduleBusy] = useState(false);
+  const [scheduleResult, setScheduleResult] = useState<ScheduleSyncResult | null>(null);
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
 
   const formBody = useCallback(() => {
     const body = new FormData();
@@ -76,8 +89,72 @@ export function SyncPanel() {
 
   const canImport = report?.sufficientForImport ?? report?.sufficientForMvp;
 
+  const refreshSchedule = async () => {
+    setScheduleBusy(true);
+    setScheduleError(null);
+    setScheduleResult(null);
+    try {
+      const res = await fetch("/api/admin/sync/schedule", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (!res.ok && res.status !== 207) {
+        setScheduleError(data.error ?? `Refresh failed (${res.status}).`);
+        return;
+      }
+      setScheduleResult(data);
+      if (data.errors?.length) {
+        setScheduleError(
+          `Pulled ${data.fetched} classes but ${data.errors.length} upsert error(s).`
+        );
+      }
+    } catch (e) {
+      setScheduleError(
+        e instanceof Error ? e.message : "Refresh failed — check your connection."
+      );
+    } finally {
+      setScheduleBusy(false);
+    }
+  };
+
   return (
     <div className="space-y-8">
+      <section className="rounded-[14px] border border-[var(--line)] bg-white p-6 shadow-sm">
+        <h2 className="font-serif text-2xl text-forest-deep">Schedule from Mariana API</h2>
+        <p className="mt-2 text-moss text-sm leading-relaxed">
+          Pull today&apos;s and the next two weeks&apos; class schedule directly from
+          Mariana — no CSV export needed. Idempotent; safe to run repeatedly.
+        </p>
+        <p className="mt-2 text-moss text-xs">
+          Doesn&apos;t touch check-ins or member stats yet; those still come from CSV
+          imports below.
+        </p>
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            disabled={scheduleBusy}
+            onClick={refreshSchedule}
+            className="rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-cream disabled:opacity-50"
+          >
+            {scheduleBusy ? "Refreshing…" : "Refresh schedule from Mariana"}
+          </button>
+          {scheduleResult && (
+            <span className="text-moss text-xs">
+              {scheduleResult.upserted}/{scheduleResult.fetched} classes ·{" "}
+              {scheduleResult.windowStart} → {scheduleResult.windowEnd} ·{" "}
+              {Math.round(scheduleResult.durationMs / 100) / 10}s
+            </span>
+          )}
+        </div>
+        {scheduleError && (
+          <p className="mt-4 rounded-lg bg-cream-soft px-4 py-3 text-sm text-terra">
+            {scheduleError}
+          </p>
+        )}
+      </section>
+
       <section className="rounded-[14px] border border-[var(--line)] bg-white p-6 shadow-sm">
         <h2 className="font-serif text-2xl text-forest-deep">Upload Mariana exports</h2>
         <p className="mt-2 text-moss text-sm leading-relaxed">
