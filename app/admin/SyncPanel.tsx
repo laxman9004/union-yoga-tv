@@ -14,6 +14,18 @@ type ScheduleSyncResult = {
   durationMs: number;
 };
 
+type RosterSyncResult = {
+  classesScanned: number;
+  membersUpserted: number;
+  checkInsUpserted: number;
+  classSessionsUpdated: number;
+  memberAggregatesUpdated: number;
+  errors: string[];
+  windowStart: string;
+  windowEnd: string;
+  durationMs: number;
+};
+
 export function SyncPanel() {
   const [files, setFiles] = useState<FileList | null>(null);
   const [report, setReport] = useState<DataVerificationReport | null>(null);
@@ -23,6 +35,9 @@ export function SyncPanel() {
   const [scheduleBusy, setScheduleBusy] = useState(false);
   const [scheduleResult, setScheduleResult] = useState<ScheduleSyncResult | null>(null);
   const [scheduleError, setScheduleError] = useState<string | null>(null);
+  const [rosterBusy, setRosterBusy] = useState(false);
+  const [rosterResult, setRosterResult] = useState<RosterSyncResult | null>(null);
+  const [rosterError, setRosterError] = useState<string | null>(null);
 
   const formBody = useCallback(() => {
     const body = new FormData();
@@ -119,38 +134,108 @@ export function SyncPanel() {
     }
   };
 
+  const refreshRosters = async () => {
+    setRosterBusy(true);
+    setRosterError(null);
+    setRosterResult(null);
+    try {
+      const res = await fetch("/api/admin/sync/rosters", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({}),
+      });
+      const data = await res.json();
+      if (!res.ok && res.status !== 207) {
+        setRosterError(data.error ?? `Refresh failed (${res.status}).`);
+        return;
+      }
+      setRosterResult(data);
+      if (data.errors?.length) {
+        setRosterError(
+          `Scanned ${data.classesScanned} classes but hit ${data.errors.length} error(s) — first: ${data.errors[0]}`
+        );
+      }
+    } catch (e) {
+      setRosterError(
+        e instanceof Error ? e.message : "Refresh failed — check your connection."
+      );
+    } finally {
+      setRosterBusy(false);
+    }
+  };
+
+  const refreshAll = async () => {
+    await refreshSchedule();
+    await refreshRosters();
+  };
+
   return (
     <div className="space-y-8">
       <section className="rounded-[14px] border border-[var(--line)] bg-white p-6 shadow-sm">
-        <h2 className="font-serif text-2xl text-forest-deep">Schedule from Mariana API</h2>
+        <h2 className="font-serif text-2xl text-forest-deep">Sync from Mariana API</h2>
         <p className="mt-2 text-moss text-sm leading-relaxed">
-          Pull today&apos;s and the next two weeks&apos; class schedule directly from
-          Mariana — no CSV export needed. Idempotent; safe to run repeatedly.
+          Live pulls from Mariana — no CSV needed. <strong>Schedule</strong> is fast
+          (today&apos;s class list). <strong>Check-ins</strong> walks each class to
+          upsert who&apos;s in the room. <strong>Everything</strong> runs both.
         </p>
         <p className="mt-2 text-moss text-xs">
-          Doesn&apos;t touch check-ins or member stats yet; those still come from CSV
-          imports below.
+          All sync operations are idempotent; safe to re-run. Window: 2 days back,
+          14 days ahead.
         </p>
+
         <div className="mt-6 flex flex-wrap items-center gap-3">
           <button
             type="button"
-            disabled={scheduleBusy}
-            onClick={refreshSchedule}
+            disabled={scheduleBusy || rosterBusy}
+            onClick={refreshAll}
             className="rounded-full bg-forest px-5 py-2.5 text-sm font-semibold text-cream disabled:opacity-50"
           >
-            {scheduleBusy ? "Refreshing…" : "Refresh schedule from Mariana"}
+            {scheduleBusy || rosterBusy ? "Syncing…" : "Refresh everything"}
           </button>
-          {scheduleResult && (
-            <span className="text-moss text-xs">
-              {scheduleResult.upserted}/{scheduleResult.fetched} classes ·{" "}
-              {scheduleResult.windowStart} → {scheduleResult.windowEnd} ·{" "}
-              {Math.round(scheduleResult.durationMs / 100) / 10}s
-            </span>
-          )}
+          <button
+            type="button"
+            disabled={scheduleBusy || rosterBusy}
+            onClick={refreshSchedule}
+            className="rounded-full border border-forest-deep px-5 py-2.5 text-sm font-semibold text-forest-deep disabled:opacity-50"
+          >
+            {scheduleBusy ? "Schedule…" : "Schedule only"}
+          </button>
+          <button
+            type="button"
+            disabled={scheduleBusy || rosterBusy}
+            onClick={refreshRosters}
+            className="rounded-full border border-forest-deep px-5 py-2.5 text-sm font-semibold text-forest-deep disabled:opacity-50"
+          >
+            {rosterBusy ? "Check-ins…" : "Check-ins only"}
+          </button>
         </div>
+
+        {scheduleResult && (
+          <p className="mt-4 text-moss text-xs">
+            <strong className="text-forest-deep">Schedule:</strong>{" "}
+            {scheduleResult.upserted}/{scheduleResult.fetched} classes ·{" "}
+            {scheduleResult.windowStart} → {scheduleResult.windowEnd} ·{" "}
+            {Math.round(scheduleResult.durationMs / 100) / 10}s
+          </p>
+        )}
+        {rosterResult && (
+          <p className="mt-1 text-moss text-xs">
+            <strong className="text-forest-deep">Check-ins:</strong>{" "}
+            {rosterResult.classesScanned} classes ·{" "}
+            {rosterResult.membersUpserted} members ·{" "}
+            {rosterResult.checkInsUpserted} check-ins ·{" "}
+            {rosterResult.memberAggregatesUpdated} aggregates ·{" "}
+            {Math.round(rosterResult.durationMs / 100) / 10}s
+          </p>
+        )}
         {scheduleError && (
           <p className="mt-4 rounded-lg bg-cream-soft px-4 py-3 text-sm text-terra">
-            {scheduleError}
+            <strong>Schedule:</strong> {scheduleError}
+          </p>
+        )}
+        {rosterError && (
+          <p className="mt-2 rounded-lg bg-cream-soft px-4 py-3 text-sm text-terra">
+            <strong>Check-ins:</strong> {rosterError}
           </p>
         )}
       </section>
