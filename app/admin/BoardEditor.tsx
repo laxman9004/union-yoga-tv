@@ -167,21 +167,50 @@ export function BoardEditor({
     onPublished?.();
   };
 
-  const generateTestimonials = async () => {
+  const polishItem = async (
+    classSessionId: string,
+    itemKey: string,
+    currentHeadline: string,
+    currentSubline: string
+  ) => {
+    const c = lineup?.classes.find((x) => x.classSessionId === classSessionId);
+    const item = c?.items.find((i) => i.itemKey === itemKey);
+    if (!c || !item) return;
     setBusy(true);
     setMessage(null);
-    const res = await fetch("/api/copy/generate", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ templateId: "reverse-testimonial", count: 3 }),
-    });
-    setBusy(false);
-    const data = await res.json();
-    if (data.created > 0) {
-      setMessage(`Added ${data.created} AI testimonial draft(s) — refresh to see in publish batch.`);
-      await load();
-    } else {
-      setMessage(data.errors?.join(" · ") ?? "Generate failed.");
+    try {
+      const res = await fetch("/api/copy/polish", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sceneKey: item.sceneKey,
+          category: item.category,
+          payload: item.payload,
+          classType: c.classType,
+          instructorName: c.instructorName,
+          currentHeadline,
+          currentSubline,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setMessage(data.error ?? "Polish failed.");
+        return;
+      }
+      // Apply the rewrite to local state — admin still has to check the
+      // checkbox before it'll be included on publish.
+      setItems((prev) => ({
+        ...prev,
+        [itemId(classSessionId, itemKey)]: {
+          enabled: prev[itemId(classSessionId, itemKey)]?.enabled ?? item.enabled,
+          headline: data.headline ?? currentHeadline,
+          subline: data.subline ?? currentSubline,
+        },
+      }));
+    } catch (e) {
+      setMessage(e instanceof Error ? e.message : "Polish failed.");
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -306,16 +335,6 @@ export function BoardEditor({
               </li>
             ))}
           </ul>
-          {!readOnly && (
-            <button
-              type="button"
-              disabled={busy}
-              onClick={generateTestimonials}
-              className="mt-4 rounded-full border border-forest/30 px-4 py-2 text-xs font-semibold text-forest-deep hover:bg-cream-soft disabled:opacity-40"
-            >
-              + Generate reverse testimonials (AI)
-            </button>
-          )}
         </section>
       )}
 
@@ -375,6 +394,7 @@ export function BoardEditor({
                 busy={busy}
                 readOnly={readOnly}
                 setItem={setItem}
+                onPolish={polishItem}
               />
             )}
             {studentItems.length > 0 ? (
@@ -387,6 +407,7 @@ export function BoardEditor({
                 busy={busy}
                 readOnly={readOnly}
                 setItem={setItem}
+                onPolish={polishItem}
               />
             ) : (
               <p className="mt-4 text-moss text-sm">No student scenes for this class yet.</p>
@@ -407,6 +428,7 @@ function SuggestionGroup({
   busy,
   readOnly,
   setItem,
+  onPolish,
 }: {
   title: string;
   hint: string;
@@ -420,6 +442,12 @@ function SuggestionGroup({
     item: LineupAdminItem,
     patch: Partial<ItemState>
   ) => void;
+  onPolish?: (
+    classSessionId: string,
+    itemKey: string,
+    headline: string,
+    subline: string
+  ) => Promise<void>;
 }) {
   return (
     <div className="mt-6">
@@ -490,6 +518,19 @@ function SuggestionGroup({
                         disabled={busy}
                         onChange={(e) => setItem(classSessionId, item, { subline: e.target.value })}
                       />
+                      {onPolish && (
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() =>
+                            onPolish(classSessionId, item.itemKey, state.headline, state.subline)
+                          }
+                          className="mt-2 rounded-full border border-clay/30 px-3 py-1 text-[11px] font-semibold text-clay hover:bg-clay/5 disabled:opacity-40"
+                          title="Rewrite this scene with AI to be more exciting"
+                        >
+                          ✨ Polish with AI
+                        </button>
+                      )}
                     </>
                   )}
                 </div>

@@ -78,7 +78,7 @@ export function buildClassLineupItems(opts: {
           m.lifetimeClassCount === 0
             ? "Brand new to the studio"
             : "Early visits — still finding their mat",
-        defaultEnabled: true,
+        defaultEnabled: false,
         sortOrder: order++,
         payload: {
           firstName: m.firstName,
@@ -96,7 +96,7 @@ export function buildClassLineupItems(opts: {
       category: "student",
       headline: `Welcome back — ${display}`,
       subline: `Class #${m.lifetimeClassCount}${opts.instructorName ? ` · ${opts.instructorName}` : ""}`,
-      defaultEnabled: m.lifetimeClassCount >= 2,
+      defaultEnabled: false,
       sortOrder: order++,
       payload: {
         firstName: m.firstName,
@@ -114,7 +114,7 @@ export function buildClassLineupItems(opts: {
         category: "student",
         headline: `Birthday — ${display}`,
         subline: "In the room today",
-        defaultEnabled: true,
+        defaultEnabled: false,
         sortOrder: order++,
         payload: {
           firstName: m.firstName,
@@ -130,7 +130,7 @@ export function buildClassLineupItems(opts: {
         category: "student",
         headline: `Streak — ${display}`,
         subline: `${m.checkIns1Week} classes this week`,
-        defaultEnabled: true,
+        defaultEnabled: false,
         sortOrder: order++,
         payload: {
           firstName: m.firstName,
@@ -155,7 +155,7 @@ export function buildClassLineupItems(opts: {
             until === 0
               ? `Hit class #${target} today`
               : `${until} away from class #${target} (${m.lifetimeClassCount} so far)`,
-          defaultEnabled: true,
+          defaultEnabled: false,
           sortOrder: order++,
           payload: {
             firstName: m.firstName,
@@ -181,7 +181,7 @@ export function buildClassLineupItems(opts: {
       category: "student",
       headline: `Guest — ${guest}`,
       subline: `Checked in with ${host}`,
-      defaultEnabled: true,
+      defaultEnabled: false,
       sortOrder: order++,
       payload: {
         guestFirstName: g.guestFirstName,

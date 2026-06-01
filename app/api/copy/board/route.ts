@@ -42,26 +42,9 @@ async function loadBoard(date: Date) {
     lineup = await getTodayLineupAdmin(date);
   }
 
-  // Suggestions are computed from the live snapshot, which is only meaningful
-  // for today/future. Past days show stored items only.
+  // Studio-wide suggestions (sweat forecast, next class vibe) are live snapshot
+  // and only meaningful for today/future. Past days show stored items only.
   const studio = isPast(date) ? [] : await buildStudioSuggestions();
-
-  if (!isPast(date)) {
-    const aiDrafts = await prisma.generatedCopy.findMany({
-      where: { status: "draft", templateId: "reverse-testimonial" },
-      orderBy: { updatedAt: "desc" },
-      take: 5,
-    });
-    for (const d of aiDrafts) {
-      studio.push({
-        suggestionKey: `draft-${d.id}`,
-        templateId: "reverse-testimonial",
-        label: "Reverse testimonial",
-        content: d.content,
-        reason: "AI draft — edit or skip",
-      });
-    }
-  }
 
   return { studio, lineup, date: studioDayKey(date), readOnly: isPast(date) };
 }
