@@ -13,7 +13,10 @@ export function endOfDay(d = new Date()): Date {
   return studioDayEnd(d);
 }
 
-export async function refreshTodayLineupDrafts(now = new Date()): Promise<void> {
+export async function refreshTodayLineupDrafts(
+  now: Date = new Date(),
+  opts: { force?: boolean } = {}
+): Promise<void> {
   const dayStart = startOfDay(now);
   const dayEnd = endOfDay(now);
 
@@ -41,9 +44,12 @@ export async function refreshTodayLineupDrafts(now = new Date()): Promise<void> 
     });
 
     const existing = session.lineups[0];
-    const enabledMap = new Map(
-      existing?.items.map((i) => [i.itemKey, i.enabled]) ?? []
-    );
+    // When force=true the caller wants a clean slate — apply every candidate's
+    // defaultEnabled fresh, no preservation of prior enable toggles. Use this
+    // sparingly: routine refreshes should preserve admin edits.
+    const enabledMap = opts.force
+      ? new Map<string, boolean>()
+      : new Map(existing?.items.map((i) => [i.itemKey, i.enabled]) ?? []);
 
     const lineup = existing
       ? await prisma.classLineup.update({

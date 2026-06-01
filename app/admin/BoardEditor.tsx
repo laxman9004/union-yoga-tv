@@ -134,6 +134,31 @@ export function BoardEditor({
     setMessage("Rebuilt from latest data.");
   };
 
+  const resetToDefaults = async () => {
+    if (
+      !window.confirm(
+        "Reset every scene on this day to its default enabled state? Your prior check/uncheck edits for this day will be discarded."
+      )
+    )
+      return;
+    setBusy(true);
+    setMessage(null);
+    const res = await fetch("/api/copy/board", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "reset", date }),
+    });
+    setBusy(false);
+    if (!res.ok) {
+      setMessage("Reset failed.");
+      return;
+    }
+    applyBoard(await res.json());
+    setMessage(
+      "Reset to defaults — notable scenes (birthdays, milestones, first-class, streaks) are on; routine welcome-backs are off."
+    );
+  };
+
   const publish = async () => {
     setBusy(true);
     setMessage(null);
@@ -248,6 +273,15 @@ export function BoardEditor({
               className="rounded-full border border-forest-deep px-5 py-2.5 text-sm font-semibold text-forest-deep disabled:opacity-50"
             >
               Refresh from data
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={resetToDefaults}
+              className="rounded-full border border-clay/40 px-5 py-2.5 text-sm font-semibold text-clay disabled:opacity-50"
+              title="Re-apply candidate defaults; discards prior check/uncheck edits"
+            >
+              ↻ Reset to defaults
             </button>
             <button
               type="button"

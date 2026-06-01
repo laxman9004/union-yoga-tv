@@ -71,6 +71,13 @@ export async function POST(request: Request) {
     return NextResponse.json(await loadBoard(date));
   }
 
+  if (body.action === "reset") {
+    // Force-apply candidate defaultEnabled across the board for this day,
+    // discarding any prior admin enable toggles. One-click "fresh slate."
+    await refreshTodayLineupDrafts(date, { force: true });
+    return NextResponse.json(await loadBoard(date));
+  }
+
   if (body.action === "publish") {
     const lineupRows = Array.isArray(body.lineup) ? (body.lineup as LineupDraftRow[]) : [];
     const studioRows = Array.isArray(body.studio) ? body.studio : [];

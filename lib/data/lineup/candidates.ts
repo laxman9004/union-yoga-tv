@@ -47,13 +47,15 @@ export function buildClassLineupItems(opts: {
     else regularCount++;
   }
 
+  // Room snapshot: only auto-enable when the room actually has people in it.
+  // Airing "0 checked in" on the TV is worse than airing nothing.
   items.push({
     itemKey: itemKey(opts.classSessionId, "room-overview", "class"),
     sceneKey: "room-overview",
     category: "class",
     headline: "Room snapshot",
     subline: `${regularCount} regulars · ${firstTimerCount} newer · ${members.length} checked in`,
-    defaultEnabled: true,
+    defaultEnabled: members.length > 0,
     sortOrder: order++,
     payload: {
       classType: opts.classType,
@@ -69,6 +71,7 @@ export function buildClassLineupItems(opts: {
     const display = name(m.firstName, m.lastInitial);
 
     if (m.lifetimeClassCount <= 1) {
+      // Notable: a brand-new student is always worth celebrating.
       items.push({
         itemKey: itemKey(opts.classSessionId, "welcome-first", m.id),
         sceneKey: "welcome-first",
@@ -78,7 +81,7 @@ export function buildClassLineupItems(opts: {
           m.lifetimeClassCount === 0
             ? "Brand new to the studio"
             : "Early visits — still finding their mat",
-        defaultEnabled: false,
+        defaultEnabled: true,
         sortOrder: order++,
         payload: {
           firstName: m.firstName,
@@ -108,13 +111,14 @@ export function buildClassLineupItems(opts: {
     });
 
     if (isSameMonthDayLocal(m.birthday, opts.now)) {
+      // Notable: birthdays always celebrate.
       items.push({
         itemKey: itemKey(opts.classSessionId, "birthday", m.id),
         sceneKey: "birthday",
         category: "student",
         headline: `Birthday — ${display}`,
         subline: "In the room today",
-        defaultEnabled: false,
+        defaultEnabled: true,
         sortOrder: order++,
         payload: {
           firstName: m.firstName,
@@ -124,13 +128,14 @@ export function buildClassLineupItems(opts: {
     }
 
     if (m.checkIns1Week && STREAK_WEEKS.includes(m.checkIns1Week)) {
+      // Notable: weekly streak landmarks (4/8/12/26/52 classes).
       items.push({
         itemKey: itemKey(opts.classSessionId, "streak", m.id),
         sceneKey: "streak",
         category: "student",
         headline: `Streak — ${display}`,
         subline: `${m.checkIns1Week} classes this week`,
-        defaultEnabled: false,
+        defaultEnabled: true,
         sortOrder: order++,
         payload: {
           firstName: m.firstName,
@@ -143,6 +148,7 @@ export function buildClassLineupItems(opts: {
     for (const target of milestones) {
       const until = target - m.lifetimeClassCount;
       if (until >= 0 && until <= 2) {
+        // Notable: milestone hit today, or within 2 of one.
         items.push({
           itemKey: itemKey(opts.classSessionId, "milestone", `${m.id}-${target}`),
           sceneKey: "milestone",
@@ -155,7 +161,7 @@ export function buildClassLineupItems(opts: {
             until === 0
               ? `Hit class #${target} today`
               : `${until} away from class #${target} (${m.lifetimeClassCount} so far)`,
-          defaultEnabled: false,
+          defaultEnabled: true,
           sortOrder: order++,
           payload: {
             firstName: m.firstName,
