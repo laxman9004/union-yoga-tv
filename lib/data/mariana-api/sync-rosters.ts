@@ -45,6 +45,12 @@ export type RosterSyncOptions = {
   daysBack?: number;
   daysAhead?: number;
   locationId?: string;
+  /**
+   * If provided, sync ONLY this single studio-local day (YYYY-MM-DD).
+   * Overrides daysBack/daysAhead. Used by the chunked client loop so each
+   * function call stays well under Netlify's per-function timeout.
+   */
+  date?: string;
 };
 
 function dayOffsetKey(offsetDays: number): string {
@@ -96,10 +102,20 @@ export async function syncRostersFromMariana(
   options: RosterSyncOptions = {}
 ): Promise<RosterSyncStats> {
   const t0 = Date.now();
-  const daysBack = options.daysBack ?? 2;
-  const daysAhead = options.daysAhead ?? 14;
-  const minDate = dayOffsetKey(-daysBack);
-  const maxDate = dayOffsetKey(daysAhead);
+  // Single-day mode: caller passes an explicit YYYY-MM-DD. Used by the chunked
+  // client loop to keep each function invocation small enough that we never
+  // touch Netlify's per-function timeout.
+  let minDate: string;
+  let maxDate: string;
+  if (options.date && /^\d{4}-\d{2}-\d{2}$/.test(options.date)) {
+    minDate = options.date;
+    maxDate = options.date;
+  } else {
+    const daysBack = options.daysBack ?? 0;
+    const daysAhead = options.daysAhead ?? 1;
+    minDate = dayOffsetKey(-daysBack);
+    maxDate = dayOffsetKey(daysAhead);
+  }
 
   const stats: RosterSyncStats = {
     classesScanned: 0,

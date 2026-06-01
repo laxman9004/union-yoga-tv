@@ -24,6 +24,10 @@ export async function POST(request: Request) {
     typeof body?.daysAhead === "number" && body.daysAhead > 0
       ? body.daysAhead
       : undefined;
+  const date =
+    typeof body?.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(body.date)
+      ? body.date
+      : undefined;
 
   if (!process.env.MARIANATEK_API_TOKEN || !process.env.MARIANATEK_BASE_URL) {
     return NextResponse.json(
@@ -35,7 +39,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const stats = await syncRostersFromMariana({ daysBack, daysAhead });
+  const stats = await syncRostersFromMariana({ daysBack, daysAhead, date });
   const status = stats.errors.length > 0 ? 207 : 200;
   return NextResponse.json(stats, { status });
 }

@@ -134,32 +134,112 @@ export function SyncPanel() {
     }
   };
 
+  /** Robust POST that surfaces the real status when the server returns HTML
+   *  (Netlify gateway/timeout pages) instead of throwing "Unexpected token <". */
+  const postJson = async (
+    url: string,
+    body: object
+  ): Promise<{ ok: boolean; data: unknown; status: number; rawSnippet?: string }> => {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const text = await res.text();
+    let data: unknown = null;
+    try {
+      data = text ? JSON.parse(text) : null;
+    } catch {
+      // Not JSON — return a snippet so the user sees what really happened.
+      return {
+        ok: false,
+        data: null,
+        status: res.status,
+        rawSnippet: text.replace(/\s+/g, " ").slice(0, 240),
+      };
+    }
+    return { ok: res.ok || res.status === 207, data, status: res.status };
+  };
+
+  /** Studio-local YYYY-MM-DD offset from today. Mirrors lib/data/dates.ts. */
+  const dayOffsetKey = (offsetDays: number): string => {
+    const now = new Date();
+    const fmt = new Intl.DateTimeFormat("en-CA", {
+      timeZone: "America/New_York",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const parts: Record<string, string> = {};
+    for (const p of fmt.formatToParts(now))
+      if (p.type !== "literal") parts[p.type] = p.value;
+    const y = parseInt(parts.year, 10);
+    const m = parseInt(parts.month, 10);
+    const d = parseInt(parts.day, 10);
+    const shifted = new Date(Date.UTC(y, m - 1, d + offsetDays));
+    return shifted.toISOString().slice(0, 10);
+  };
+
   const refreshRosters = async () => {
     setRosterBusy(true);
     setRosterError(null);
     setRosterResult(null);
+
+    // Walk the window day-by-day. Each call is small (a handful of classes)
+    // so we never exceed Netlify's per-function timeout. Accumulate stats.
+    const daysBack = 2;
+    const daysAhead = 14;
+    const totals = {
+      classesScanned: 0,
+      membersUpserted: 0,
+      checkInsUpserted: 0,
+      classSessionsUpdated: 0,
+      memberAggregatesUpdated: 0,
+      errors: [] as string[],
+      windowStart: dayOffsetKey(-daysBack),
+      windowEnd: dayOffsetKey(daysAhead),
+      durationMs: 0,
+    };
+
+    const t0 = Date.now();
     try {
-      const res = await fetch("/api/admin/sync/rosters", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
-      });
-      const data = await res.json();
-      if (!res.ok && res.status !== 207) {
-        setRosterError(data.error ?? `Refresh failed (${res.status}).`);
-        return;
-      }
-      setRosterResult(data);
-      if (data.errors?.length) {
-        setRosterError(
-          `Scanned ${data.classesScanned} classes but hit ${data.errors.length} error(s) — first: ${data.errors[0]}`
-        );
+      for (let offset = -daysBack; offset <= daysAhead; offset++) {
+        const date = dayOffsetKey(offset);
+        // Live progress in the result line so a long sync isn't silent.
+        setRosterResult({ ...totals, durationMs: Date.now() - t0 });
+
+        const r = await postJson("/api/admin/sync/rosters", { date });
+        if (!r.ok) {
+          const detail =
+            r.rawSnippet ??
+            (typeof (r.data as { error?: string })?.error === "string"
+              ? (r.data as { error: string }).error
+              : "");
+          setRosterError(
+            `${date}: HTTP ${r.status}${detail ? ` — ${detail}` : ""}`
+          );
+          break;
+        }
+        const stats = r.data as typeof totals;
+        totals.classesScanned += stats.classesScanned;
+        totals.membersUpserted += stats.membersUpserted;
+        totals.checkInsUpserted += stats.checkInsUpserted;
+        totals.classSessionsUpdated += stats.classSessionsUpdated;
+        totals.memberAggregatesUpdated += stats.memberAggregatesUpdated;
+        if (stats.errors?.length) totals.errors.push(...stats.errors);
       }
     } catch (e) {
       setRosterError(
         e instanceof Error ? e.message : "Refresh failed — check your connection."
       );
     } finally {
+      totals.durationMs = Date.now() - t0;
+      setRosterResult(totals);
+      if (totals.errors.length) {
+        setRosterError(
+          `Hit ${totals.errors.length} error(s) — first: ${totals.errors[0]}`
+        );
+      }
       setRosterBusy(false);
     }
   };
