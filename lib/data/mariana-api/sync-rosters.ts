@@ -28,6 +28,7 @@ import {
   type ApiAdminUser,
   type ApiAdminClassSession,
 } from "@/lib/mariana-api/fetch-roster";
+import { refreshTodayLineupDrafts } from "@/lib/data/lineup/store";
 
 export type RosterSyncStats = {
   classesScanned: number;
@@ -35,6 +36,13 @@ export type RosterSyncStats = {
   checkInsUpserted: number;
   classSessionsUpdated: number;
   memberAggregatesUpdated: number;
+  /**
+   * Number of (today-or-future) days whose lineup drafts we rebuilt at the
+   * end of the sync. Without this, BoardEditor would keep showing the stale
+   * checkedInCount snapshotted in the room-overview scene payload from a
+   * previous run.
+   */
+  lineupsRefreshed: number;
   errors: string[];
   windowStart: string;
   windowEnd: string;
@@ -123,6 +131,7 @@ export async function syncRostersFromMariana(
     checkInsUpserted: 0,
     classSessionsUpdated: 0,
     memberAggregatesUpdated: 0,
+    lineupsRefreshed: 0,
     errors: [],
     windowStart: minDate,
     windowEnd: maxDate,
@@ -232,6 +241,31 @@ export async function syncRostersFromMariana(
     } catch (err) {
       stats.errors.push(
         `member ${memberId}: aggregate refresh failed — ${
+          err instanceof Error ? err.message : String(err)
+        }`
+      );
+    }
+  }
+
+  // 4. Rebuild lineup drafts for today + future days in the window so the
+  // BoardEditor immediately reflects the new check-ins. Skip past days —
+  // those carry historical "what aired" snapshots we don't want to disturb.
+  const todayKey = dayOffsetKey(0);
+  const datesToRefresh = new Set<string>();
+  for (const cls of classes) {
+    const dayKey = studioDayKey(cls.startTime);
+    if (dayKey >= todayKey) datesToRefresh.add(dayKey);
+  }
+  for (const dateKey of datesToRefresh) {
+    try {
+      const [y, m, d] = dateKey.split("-").map((n) => parseInt(n, 10));
+      // Pass studio noon so any "now" comparisons inside the candidate
+      // builder (birthday check, etc.) resolve to that calendar day.
+      await refreshTodayLineupDrafts(studioLocalDate(y, m, d, 12));
+      stats.lineupsRefreshed++;
+    } catch (err) {
+      stats.errors.push(
+        `lineup refresh ${dateKey} failed — ${
           err instanceof Error ? err.message : String(err)
         }`
       );

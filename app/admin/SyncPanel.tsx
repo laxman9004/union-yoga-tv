@@ -20,6 +20,7 @@ type RosterSyncResult = {
   checkInsUpserted: number;
   classSessionsUpdated: number;
   memberAggregatesUpdated: number;
+  lineupsRefreshed: number;
   errors: string[];
   windowStart: string;
   windowEnd: string;
@@ -195,6 +196,7 @@ export function SyncPanel() {
       checkInsUpserted: 0,
       classSessionsUpdated: 0,
       memberAggregatesUpdated: 0,
+      lineupsRefreshed: 0,
       errors: [] as string[],
       windowStart: dayOffsetKey(-daysBack),
       windowEnd: dayOffsetKey(daysAhead),
@@ -226,6 +228,7 @@ export function SyncPanel() {
         totals.checkInsUpserted += stats.checkInsUpserted;
         totals.classSessionsUpdated += stats.classSessionsUpdated;
         totals.memberAggregatesUpdated += stats.memberAggregatesUpdated;
+        totals.lineupsRefreshed += stats.lineupsRefreshed ?? 0;
         if (stats.errors?.length) totals.errors.push(...stats.errors);
       }
     } catch (e) {
@@ -305,6 +308,7 @@ export function SyncPanel() {
             {rosterResult.membersUpserted} members ·{" "}
             {rosterResult.checkInsUpserted} check-ins ·{" "}
             {rosterResult.memberAggregatesUpdated} aggregates ·{" "}
+            {rosterResult.lineupsRefreshed} lineups ·{" "}
             {Math.round(rosterResult.durationMs / 100) / 10}s
           </p>
         )}
