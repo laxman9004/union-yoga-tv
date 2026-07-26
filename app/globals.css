@@ -57,6 +57,23 @@ body {
   box-decoration-break: clone;
 }
 
+/* Variant F highlighter — forest / dark background */
+.brand-mark-hl--on-dark {
+  display: inline-block;
+  font-weight: 500;
+  padding: 0 0.08em;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    transparent 28%,
+    rgba(217, 164, 122, 0.55) 28%,
+    rgba(217, 164, 122, 0.55) 96%,
+    transparent 96%
+  );
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
 @keyframes breathe {
   0%,
   100% {
