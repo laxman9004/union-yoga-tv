@@ -7,26 +7,25 @@ export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "Free Classes for Two Weeks — Union Yoga",
   description:
-    "From August 24 to September 4, every class at Union Yoga is free. No membership, no booking. Come as you are.",
+    "From August 24 to September 4, every class at Union Yoga is free. Bring someone with you.",
 };
 
 const START = "2026-08-24";
 const END = "2026-09-04";
 
-/** A warm, practical note, one line each — the shape of one of Pooja's emails. */
+/** Warm, minimal notes for the friend you bring, one line each. */
 const NOTES: Array<{ label: string; text: string }> = [
-  { label: "When", text: "Every class, 5:30 AM to 8:30 PM, all week." },
-  { label: "How", text: "Just walk in. No reservation needed." },
-  { label: "Bring", text: "A mat and a towel, or borrow ours." },
-  { label: "New here?", text: "Come 15 minutes early and we'll show you around." },
+  { label: "When", text: "Every class, August 24 to September 4." },
+  { label: "Bring them", text: "To any class, any time, right alongside you." },
+  { label: "For them", text: "Mats and towels are on us. New? Come 15 min early." },
 ];
 
 export default function FreeWeeksPage() {
   const today = studioDayKey(new Date());
   let status: string;
   if (today < START) status = "Starts Monday, August 24";
-  else if (today > END) status = "Thank you for coming by";
-  else status = "Happening now, come on in";
+  else if (today > END) status = "Thank you for sharing the room";
+  else status = "Happening now";
 
   return (
     <div
@@ -61,21 +60,21 @@ export default function FreeWeeksPage() {
         {/* Hero + invitation */}
         <div className="grid grid-cols-[1.15fr_0.85fr] items-center gap-[5vw]">
           <div>
-            <h1 className="font-serif text-[7.6vw] leading-[0.95] font-semibold tracking-[-0.02em] text-cream">
-              Come as
+            <h1 className="font-serif text-[7.4vw] leading-[0.95] font-semibold tracking-[-0.02em] text-cream">
+              Bring someone
               <br />
-              you are.
+              with you.
             </h1>
             <p className="mt-[3.4vh] max-w-[40vw] font-sans text-[1.55vw] leading-[1.5] font-light text-cream/80">
-              For two weeks, every class at Union is free. No membership, no
-              booking, no card on file. Come try hot yoga, come back to it, or
-              just come practice. Everyone&apos;s welcome.
+              For two weeks, every class at Union is free. If there&apos;s someone
+              who&apos;s been meaning to try, this is the time. Bring them in with
+              you and practice together.
             </p>
           </div>
 
           {/* Practical note, one line each */}
           <div className="border-l border-cream/15 pl-[2.6vw]">
-            <ul className="space-y-[3vh]">
+            <ul className="space-y-[3.4vh]">
               {NOTES.map((n) => (
                 <li key={n.label}>
                   <p className="font-sans text-[0.9vw] font-medium tracking-[0.16em] text-clay-soft uppercase">
@@ -99,14 +98,9 @@ export default function FreeWeeksPage() {
               alt="Union Yoga"
               className="h-[5vh] w-auto opacity-90"
             />
-            <div>
-              <p className="font-serif text-[1.5vw] font-normal text-cream">
-                We&apos;d love to see you on the mat.
-              </p>
-              <p className="mt-[0.3vh] font-sans text-[0.95vw] font-light tracking-[0.14em] text-cream/55">
-                Pooja, Founder · Union Yoga Studio, Powell OH
-              </p>
-            </div>
+            <p className="font-serif text-[1.6vw] font-normal text-cream">
+              We&apos;d love to meet whoever you bring.
+            </p>
           </div>
           <p className="font-serif text-[1.4vw] font-light text-cream/90">
             A better <span className="brand-mark-hl--on-dark">YOU</span> at{" "}
