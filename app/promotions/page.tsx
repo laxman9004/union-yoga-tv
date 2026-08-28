@@ -47,16 +47,17 @@ export default function PromotionsPage() {
         <div className="flex items-end justify-between">
           <div>
             <p className="font-serif text-[1.6vw] font-medium text-clay-soft">
-              September at Union · Promotions begin the 1st
+              September at Union · The deals start on the 1st!
             </p>
             <h1 className="mt-[1.8vh] font-serif text-[5vw] leading-[1.0] font-semibold tracking-[-0.02em] text-cream">
-              Keep the practice going.
+              Let&apos;s keep this going!
             </h1>
           </div>
           <p className="max-w-[27vw] pb-[0.8vh] text-right font-sans text-[1.1vw] leading-[1.55] font-light text-cream/70">
-            Every class is still free through{" "}
+            Every class is free through{" "}
             <span className="text-cream whitespace-nowrap">Friday, September&nbsp;4.</span>{" "}
-            When you&apos;re ready to keep going, these run September&nbsp;1–15.
+            Then these kick in, September&nbsp;1–15. They apply automatically, no
+            code needed!
           </p>
         </div>
 
@@ -69,7 +70,7 @@ export default function PromotionsPage() {
               $10
             </p>
             <p className="mt-[2.4vh] font-sans text-[1.2vw] leading-[1.5] font-light text-cream/75">
-              A full month of unlimited classes. For anyone new to Union.
+              A whole month of unlimited classes, for anyone new to Union!
             </p>
           </div>
 
@@ -109,8 +110,8 @@ export default function PromotionsPage() {
             </p>
             <p className="mt-[2.4vh] font-sans text-[1.2vw] leading-[1.5] font-light text-cream/75">
               Sign up and take{" "}
-              <span className="text-clay-soft">$10 off your first six months.</span>{" "}
-              Regular discounts apply.
+              <span className="text-clay-soft">$10 off your first six months!</span>{" "}
+              Regular discounts apply too.
             </p>
           </div>
         </div>
@@ -122,7 +123,7 @@ export default function PromotionsPage() {
             <span className="brand-mark-hl--on-dark">U</span>nion.
           </p>
           <p className="font-sans text-[0.95vw] font-light tracking-[0.18em] text-cream/45 uppercase">
-            Ask the front desk · Union Yoga Studio, Powell OH
+            Union Yoga Studio · Powell, OH
           </p>
         </div>
       </div>
