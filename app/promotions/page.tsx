@@ -9,122 +9,145 @@ export const metadata: Metadata = {
     "September 1–15 at Union Yoga: $10 intro month, class packs with free classes, and $10 off your first six months of membership.",
 };
 
+const CARD_SHADOW =
+  "0 1px 2px rgba(31,42,34,.06), 0 24px 48px -12px rgba(31,42,34,.22)";
+
+/** The clay-soft highlighter block (brand-site.css .swipe). */
+function Swipe({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="rounded-[3px] bg-clay-soft px-[0.1em] text-ink">
+      {children}
+    </span>
+  );
+}
+
+/** The clay-dot eyebrow (brand-site.css .eyebrow). */
+function Eyebrow({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="inline-flex items-center gap-[0.55vw] font-sans text-[1vw] font-semibold tracking-[0.18em] text-clay uppercase">
+      <span className="h-[0.5vw] w-[0.5vw] rounded-full bg-clay" />
+      {children}
+    </span>
+  );
+}
+
+function OfferRule({ children }: { children: React.ReactNode }) {
+  return <div className="border-t-[3px] border-clay pt-[1.5vh]">{children}</div>;
+}
+
+function OfferLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="font-sans text-[0.92vw] font-semibold tracking-[0.16em] text-terra uppercase">
+      {children}
+    </p>
+  );
+}
+
 const PACKS = [
   { buy: "4", free: "1" },
   { buy: "10", free: "5" },
   { buy: "20", free: "10" },
 ];
 
-function ColLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="font-sans text-[0.95vw] font-medium tracking-[0.22em] text-clay-soft uppercase">
-      {children}
-    </p>
-  );
-}
-
 export default function PromotionsPage() {
   return (
-    <div
-      className="fixed inset-0 overflow-hidden text-cream"
-      style={{
-        background:
-          "radial-gradient(120% 120% at 82% 10%, #35493B 0%, #2A3A30 44%, #1C2721 100%)",
-      }}
-    >
+    <div className="fixed inset-0 flex flex-col overflow-hidden bg-cream text-ink">
       <AutoRefresh />
 
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/brand/union-yoga-mark-cream.svg"
-        alt=""
-        aria-hidden
-        className="pointer-events-none absolute right-[-8vw] bottom-[-16vh] h-[62vh] w-auto opacity-[0.05]"
-      />
+      {/* Announce bar — the two notes (brand-site.css .announce) */}
+      <div className="bg-forest px-[5vw] py-[1.5vh] text-center font-sans text-[1.1vw] font-normal text-cream">
+        Every class is free through{" "}
+        <span className="font-medium text-clay-soft">Friday, September 4.</span>{" "}
+        September promotions run the 1st–15th, and{" "}
+        <span className="font-medium text-clay-soft">apply automatically.</span>
+      </div>
 
-      <div className="relative flex h-full flex-col px-[5.5vw] pt-[6vh] pb-[4.5vh]">
-        {/* Header */}
-        <div className="flex items-end justify-between">
-          <div>
-            <p className="font-serif text-[1.6vw] font-medium text-clay-soft">
-              September at Union · The deals start on the 1st!
-            </p>
-            <h1 className="mt-[1.8vh] font-serif text-[5vw] leading-[1.0] font-semibold tracking-[-0.02em] text-cream">
-              Let&apos;s keep this going!
-            </h1>
+      {/* Body */}
+      <div className="grid flex-1 grid-cols-[1.7fr_1fr] gap-[3.5vw] px-[5vw] pt-[5vh] pb-[3.5vh]">
+        {/* Left — offer content */}
+        <div className="flex flex-col">
+          <Eyebrow>September at Union</Eyebrow>
+          <h1 className="mt-[1.8vh] font-serif text-[4.6vw] leading-[1.0] font-semibold tracking-[-0.02em] text-forest">
+            Let&apos;s keep this <Swipe>going.</Swipe>
+          </h1>
+
+          <div className="mt-[4.5vh] flex flex-col gap-[3.4vh]">
+            {/* Intro Month */}
+            <OfferRule>
+              <div className="grid grid-cols-[11vw_1fr] items-baseline gap-[2vw]">
+                <p className="font-serif text-[3.6vw] leading-none font-semibold text-forest">
+                  $10
+                </p>
+                <div>
+                  <OfferLabel>Intro Month</OfferLabel>
+                  <p className="mt-[0.8vh] font-sans text-[1.05vw] leading-[1.5] text-moss">
+                    A whole month of unlimited classes, for anyone new to Union.
+                  </p>
+                </div>
+              </div>
+            </OfferRule>
+
+            {/* Class Packs */}
+            <OfferRule>
+              <div className="grid grid-cols-[11vw_1fr] items-baseline gap-[2vw]">
+                <OfferLabel>Class Packs</OfferLabel>
+                <div className="flex gap-[3.2vw]">
+                  {PACKS.map((p) => (
+                    <div key={p.buy}>
+                      <p className="font-serif text-[2.2vw] leading-none font-semibold text-forest">
+                        Buy {p.buy}
+                      </p>
+                      <p className="mt-[0.7vh] font-sans text-[1.1vw] font-medium text-clay">
+                        + {p.free} free
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </OfferRule>
+
+            {/* Membership */}
+            <OfferRule>
+              <div className="grid grid-cols-[11vw_1fr] items-baseline gap-[2vw]">
+                <p className="font-serif text-[3.6vw] leading-none font-semibold text-forest">
+                  $89
+                  <span className="font-sans text-[1.1vw] font-normal text-moss">
+                    /mo
+                  </span>
+                </p>
+                <div>
+                  <OfferLabel>Auto-Renew Membership</OfferLabel>
+                  <p className="mt-[0.8vh] font-sans text-[1.05vw] leading-[1.5] text-moss">
+                    Sign up and take <Swipe>$10 off your first six months.</Swipe>{" "}
+                    Regular discounts apply too.
+                  </p>
+                </div>
+              </div>
+            </OfferRule>
           </div>
-          <p className="max-w-[27vw] pb-[0.8vh] text-right font-sans text-[1.1vw] leading-[1.55] font-light text-cream/70">
-            Every class is free through{" "}
-            <span className="text-cream whitespace-nowrap">Friday, September&nbsp;4.</span>{" "}
-            Then these kick in, September&nbsp;1–15. They apply automatically, no
-            code needed!
-          </p>
+
+          {/* Footer brand line */}
+          <div className="mt-auto flex items-end justify-between pt-[3vh]">
+            <p className="font-serif text-[1.4vw] font-semibold text-forest">
+              A better <Swipe>YOU</Swipe> at <Swipe>U</Swipe>nion.
+            </p>
+            <p className="font-sans text-[0.95vw] tracking-[0.14em] text-moss uppercase">
+              Union Yoga Studio · Powell, OH
+            </p>
+          </div>
         </div>
 
-        {/* Offers */}
-        <div className="mt-[5vh] grid flex-1 grid-cols-[1fr_1.25fr_1fr] gap-[4vw]">
-          {/* Intro Month */}
-          <div className="flex flex-col border-t border-cream/15 pt-[2.6vh]">
-            <ColLabel>Intro Month</ColLabel>
-            <p className="mt-[2.2vh] font-serif text-[6vw] leading-[0.9] font-semibold text-cream">
-              $10
-            </p>
-            <p className="mt-[2.4vh] font-sans text-[1.2vw] leading-[1.5] font-light text-cream/75">
-              A whole month of unlimited classes, for anyone new to Union!
-            </p>
-          </div>
-
-          {/* Class Packs */}
-          <div className="flex flex-col border-t border-cream/15 pt-[2.6vh]">
-            <ColLabel>Class Packs · Buy more, get more</ColLabel>
-            <ul className="mt-[2.2vh] space-y-[2.2vh]">
-              {PACKS.map((p) => (
-                <li
-                  key={p.buy}
-                  className="flex items-baseline justify-between border-b border-cream/10 pb-[2vh]"
-                >
-                  <span className="font-serif text-[2.4vw] font-medium text-cream">
-                    Buy {p.buy}
-                    <span className="font-sans text-[1.1vw] font-light text-cream/60">
-                      {" "}
-                      classes
-                    </span>
-                  </span>
-                  <span className="font-serif text-[2.4vw] font-medium text-clay-soft">
-                    {p.free} free
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Membership */}
-          <div className="flex flex-col border-t border-cream/15 pt-[2.6vh]">
-            <ColLabel>Auto-Renew Membership</ColLabel>
-            <p className="mt-[2.2vh] font-serif text-[6vw] leading-[0.9] font-semibold text-cream">
-              $89
-              <span className="font-sans text-[1.3vw] font-light text-cream/60">
-                {" "}
-                / mo
-              </span>
-            </p>
-            <p className="mt-[2.4vh] font-sans text-[1.2vw] leading-[1.5] font-light text-cream/75">
-              Sign up and take{" "}
-              <span className="text-clay-soft">$10 off your first six months!</span>{" "}
-              Regular discounts apply too.
-            </p>
-          </div>
-        </div>
-
-        {/* Footer */}
-        <div className="mt-[3vh] flex items-end justify-between border-t border-cream/15 pt-[2.6vh]">
-          <p className="font-serif text-[1.4vw] font-light text-cream/90">
-            A better <span className="brand-mark-hl--on-dark">YOU</span> at{" "}
-            <span className="brand-mark-hl--on-dark">U</span>nion.
-          </p>
-          <p className="font-sans text-[0.95vw] font-light tracking-[0.18em] text-cream/45 uppercase">
-            Union Yoga Studio · Powell, OH
-          </p>
+        {/* Right — warm studio photo */}
+        <div
+          className="relative overflow-hidden rounded-[22px] bg-forest"
+          style={{ boxShadow: CARD_SHADOW }}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/brand/studio-interior-wide.jpg"
+            alt="A hot yoga class in progress at Union Yoga, Powell"
+            className="h-full w-full object-cover"
+          />
         </div>
       </div>
     </div>
