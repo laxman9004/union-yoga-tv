@@ -54,12 +54,10 @@ export default function PromotionsPage() {
     <div className="fixed inset-0 flex flex-col overflow-hidden bg-cream text-ink">
       <AutoRefresh />
 
-      {/* Announce bar — the two notes (brand-site.css .announce) */}
+      {/* Announce bar — the free-weeks note (brand-site.css .announce) */}
       <div className="bg-forest px-[5vw] py-[1.5vh] text-center font-sans text-[1.1vw] font-normal text-cream">
-        Every class is free through{" "}
-        <span className="font-medium text-clay-soft">Friday, September 4.</span>{" "}
-        September promotions run the 1st–15th, and{" "}
-        <span className="font-medium text-clay-soft">apply automatically.</span>
+        The free two weeks are still on. Every class is free through{" "}
+        <span className="font-medium text-clay-soft">Friday, September 4.</span>
       </div>
 
       {/* Body */}
@@ -67,14 +65,27 @@ export default function PromotionsPage() {
         {/* Left — offer content */}
         <div className="flex flex-col">
           <Eyebrow>September at Union</Eyebrow>
-          <h1 className="mt-[1.8vh] font-serif text-[4.6vw] leading-[1.0] font-semibold tracking-[-0.02em] text-forest">
-            Let&apos;s keep this <Swipe>going.</Swipe>
+          <h1 className="mt-[1.8vh] font-serif text-[4.4vw] leading-[1.0] font-semibold tracking-[-0.02em] text-forest">
+            Let&apos;s keep this going.
           </h1>
 
-          <div className="mt-[4.5vh] flex flex-col gap-[3.4vh]">
+          {/* Artsy date lockup */}
+          <div className="mt-[2.8vh] flex items-baseline gap-[1vw]">
+            <span className="font-serif text-[2.9vw] leading-none font-semibold text-forest">
+              Promotions
+            </span>
+            <span className="font-serif text-[2.9vw] leading-none font-semibold">
+              <Swipe>Sept&nbsp;1–15</Swipe>
+            </span>
+          </div>
+          <p className="mt-[1.3vh] font-sans text-[1.05vw] text-moss">
+            Applied automatically at checkout. No code needed.
+          </p>
+
+          <div className="mt-[3.6vh] flex flex-col gap-[3vh]">
             {/* Intro Month */}
             <OfferRule>
-              <div className="grid grid-cols-[11vw_1fr] items-baseline gap-[2vw]">
+              <div className="grid grid-cols-[10vw_1fr] items-start gap-[2vw]">
                 <p className="font-serif text-[3.6vw] leading-none font-semibold text-forest">
                   $10
                 </p>
@@ -89,7 +100,7 @@ export default function PromotionsPage() {
 
             {/* Class Packs */}
             <OfferRule>
-              <div className="grid grid-cols-[11vw_1fr] items-baseline gap-[2vw]">
+              <div className="grid grid-cols-[10vw_1fr] items-start gap-[2vw]">
                 <OfferLabel>Class Packs</OfferLabel>
                 <div className="flex gap-[3.2vw]">
                   {PACKS.map((p) => (
@@ -108,7 +119,7 @@ export default function PromotionsPage() {
 
             {/* Membership */}
             <OfferRule>
-              <div className="grid grid-cols-[11vw_1fr] items-baseline gap-[2vw]">
+              <div className="grid grid-cols-[10vw_1fr] items-start gap-[2vw]">
                 <p className="font-serif text-[3.6vw] leading-none font-semibold text-forest">
                   $89
                   <span className="font-sans text-[1.1vw] font-normal text-moss">
@@ -144,9 +155,10 @@ export default function PromotionsPage() {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/brand/studio-interior-wide.jpg"
-            alt="A hot yoga class in progress at Union Yoga, Powell"
+            src="/brand/studio-lobby.jpg"
+            alt="The warm lobby at Union Yoga, Powell, with its floral wall and woven pendant lights"
             className="h-full w-full object-cover"
+            style={{ objectPosition: "55% 38%" }}
           />
         </div>
       </div>
