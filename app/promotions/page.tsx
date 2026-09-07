@@ -54,10 +54,10 @@ export default function PromotionsPage() {
     <div className="fixed inset-0 flex flex-col overflow-hidden bg-cream text-ink">
       <AutoRefresh />
 
-      {/* Announce bar — the free-weeks note (brand-site.css .announce) */}
+      {/* Announce bar — evergreen brand line (brand-site.css .announce) */}
       <div className="bg-forest px-[5vw] py-[1.5vh] text-center font-sans text-[1.1vw] font-normal text-cream">
-        The free two weeks are still on. Every class is free through{" "}
-        <span className="font-medium text-clay-soft">Friday, September 4.</span>
+        <span className="font-medium text-clay-soft">Come as you are.</span>{" "}
+        Book anytime at unionyogastudio.com
       </div>
 
       {/* Body */}
@@ -155,10 +155,10 @@ export default function PromotionsPage() {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/brand/studio-lobby.jpg"
-            alt="The warm lobby at Union Yoga, Powell, with its floral wall and woven pendant lights"
+            src="/brand/studio-poses.jpg"
+            alt="The backlit yoga-pose figures on the feature wall at Union Yoga, Powell"
             className="h-full w-full object-cover"
-            style={{ objectPosition: "55% 38%" }}
+            style={{ objectPosition: "center" }}
           />
         </div>
       </div>
